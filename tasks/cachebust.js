@@ -27,7 +27,7 @@ module.exports = function(grunt) {
     };
     grunt.registerMultiTask('cacheBust', 'Bust static assets from the cache using content hashing', function() {
         var opts = this.options(DEFAULT_OPTIONS);
-        if( opts.baseDir.substr(-1) !== '/' ) {
+        if (opts.baseDir.substr(-1) !== '/') {
             opts.baseDir += '/';
         }
 
@@ -38,7 +38,7 @@ module.exports = function(grunt) {
 
         //clear output dir if it was set
         if (opts.clearOutputDir && opts.outputDir.length > 0) {
-            fs.removeSync(path.resolve((discoveryOpts.cwd ? discoveryOpts.cwd + '/' +opts.outputDir : opts.outputDir)));
+            fs.removeSync(path.resolve((discoveryOpts.cwd ? discoveryOpts.cwd + '/' + opts.outputDir : opts.outputDir)));
         }
 
         // Generate an asset map
@@ -88,48 +88,22 @@ module.exports = function(grunt) {
         files.forEach(replaceInFile);
         grunt.log.ok(files.length + ' file' + (files.length !== 1 ? 's ' : ' ') + 'busted.');
 
+        function escapeStr(s) {
+            return String(s).replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+        }
+
         function replaceInFile(filepath) {
             var markup = grunt.file.read(filepath);
-            var baseDir = discoveryOpts.cwd + '/';
-            var relativeFileDir = path.dirname(filepath).substr(baseDir.length);
-            var fileDepth = 0;
-
-            if (relativeFileDir !== '') {
-                fileDepth = relativeFileDir.split('/').length;
-            }
-
-            var baseDirs = filepath.substr(baseDir.length).split('/');
 
             _.each(assetMap, function(hashed, original) {
-                var replace = [
-                    // abs path
-                    ['/' + original, '/' + hashed],
-                    // relative
-                    [grunt.util.repeat(fileDepth, '../') + original, grunt.util.repeat(fileDepth, '../') + hashed],
-                ];
-                // find relative paths for shared dirs
-                var originalDirParts = path.dirname(original).split('/');
-                for (var i = 1; i <= fileDepth; i++) {
-                    var fileDir = originalDirParts.slice(0, i).join('/');
-                    var baseDir = baseDirs.slice(0, i).join('/');
-                    if (fileDir === baseDir) {
-                        var originalFilename = path.basename(original);
-                        var hashedFilename = path.basename(hashed);
-                        var dir = grunt.util.repeat(fileDepth - 1, '../') + originalDirParts.slice(i).join('/');
-                        if (dir.substr(-1) !== '/') {
-                            dir += '/';
-                        }
-                        replace.push([dir + originalFilename, dir + hashedFilename]);
-                    }
-                }
 
-                _.each(replace, function(r) {
-                    var original = r[0];
-                    var hashed = r[1];
-                    _.each(replaceEnclosedBy, function(reb) {
-                        markup = markup.split(reb[0] + original + reb[1]).join(reb[0] + hashed + reb[1]);
-                    });
-                });
+                // get file extension and the before file path
+                var extOriginal = original.split('.').slice(-1),
+                    trunkOriginal = original.split('.').slice(0, -1).join('.');
+
+                var pattOrigFile = new RegExp(escapeStr(original) + "(\\?[a-fA-F0-9]{" + opts.length + "})?|(" + escapeStr(trunkOriginal + opts.separator) + "[a-fA-F0-9]{" + opts.length + "}\\." + extOriginal + ")", "gm");
+
+                markup = markup.replace(pattOrigFile, hashed);
             });
 
             grunt.file.write(filepath, markup);
@@ -179,9 +153,9 @@ module.exports = function(grunt) {
             var baseDirResolved = path.resolve(baseDir) + '/';
             var cwd = process.cwd() + '/';
             originalConfig.src = originalConfig.src.map(function(file) {
-                if( assetMap ) {
+                if (assetMap) {
                     var files = [file];
-                    if(path.resolve(cwd + file).substr(0, baseDirResolved.length) === baseDirResolved) {
+                    if (path.resolve(cwd + file).substr(0, baseDirResolved.length) === baseDirResolved) {
                         files.push(path.resolve(cwd + file).substr(baseDirResolved.length));
                     }
                     var result;
@@ -191,12 +165,12 @@ module.exports = function(grunt) {
                             result = assetMap[fileResolved.substr(baseDirResolved.length)];
                             // if original file had baseDir at the start, make sure it's there now
                             var baseDirNormalized = path.normalize(baseDir);
-                            if(path.normalize(file).substr(0, baseDirNormalized.length) === baseDirNormalized) {
+                            if (path.normalize(file).substr(0, baseDirNormalized.length) === baseDirNormalized) {
                                 result = baseDir + result;
                             }
                         }
                     });
-                    if(result) {
+                    if (result) {
                         return result;
                     }
                 }
