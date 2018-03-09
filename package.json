@@ -1,6 +1,6 @@
 {
-    "name": "grunt-cache-bust",
-    "description": "Bust static assets from the cache using content hashing",
+    "name": "grunt-cache-bust-hash",
+    "description": "Bust static assets from the cache using content hashing and append query strings(optional) to the updated source file",
     "version": "1.6.0",
     "author": "Shikhar Seth",
     "repository": {

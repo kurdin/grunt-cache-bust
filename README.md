@@ -187,6 +187,7 @@ Default value: `false`
 
 Use a query string for cache busting instead of rewriting files.
 
+P.S Implementation provided for querystring(if set true) was wrong, I just updated the package with new method on busting the file on every change of content.
 ### Usage Examples
 
 #### The most basic setup
@@ -255,4 +256,4 @@ cacheBust: {
 
 # License
 
-MIT © [Ben Holland](https://benholland.me)
+MIT © [Shikhar Seth]
